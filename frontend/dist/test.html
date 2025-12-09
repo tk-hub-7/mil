@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Page</title>
+    <style>
+        body {
+            background: #020617;
+            color: white;
+            font-family: Arial, sans-serif;
+            padding: 40px;
+            text-align: center;
+        }
+        .status {
+            background: #16a34a;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px auto;
+            max-width: 600px;
+        }
+        .error {
+            background: #dc2626;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Frontend Server Test</h1>
+    <div id="status" class="status">
+        <h2>✅ Server is Working!</h2>
+        <p>If you can see this page, the Vite server is running correctly.</p>
+    </div>
+    
+    <div style="margin-top: 40px;">
+        <h3>Next Steps:</h3>
+        <ol style="text-align: left; max-width: 600px; margin: 0 auto;">
+            <li>The main app should be at: <a href="/" style="color: #22c55e;">http://localhost:5173/</a></li>
+            <li>If the main app shows a blank page, open browser console (F12)</li>
+            <li>Look for red error messages in the Console tab</li>
+            <li>Share any error messages you see</li>
+        </ol>
+    </div>
+
+    <script>
+        console.log('✅ Test page loaded successfully!');
+        console.log('If you see this message, JavaScript is working.');
+        
+        // Test if we can fetch from the API
+        fetch('/api/v1/auth/login/', {
+            method: 'OPTIONS'
+        })
+        .then(response => {
+            console.log('✅ API server is reachable:', response.status);
+        })
+        .catch(error => {
+            console.error('❌ API server error:', error);
+        });
+    </script>
+</body>
+</html>
