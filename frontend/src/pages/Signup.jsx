@@ -17,7 +17,13 @@ const Signup = () => {
         role_code: '', // Role verification code
         assigned_base_id: null,
     });
-    const [roles, setRoles] = useState([]);
+
+    // Default roles in case API fails
+    const [roles, setRoles] = useState([
+        { value: 'admin', label: 'Administrator' },
+        { value: 'base_commander', label: 'Base Commander' },
+        { value: 'logistics_officer', label: 'Logistics Officer' },
+    ]);
     const [bases, setBases] = useState([]);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -35,10 +41,14 @@ const Signup = () => {
                     api.get('/auth/roles/'),
                     api.get('/bases/')
                 ]);
-                setRoles(rolesResponse.data.roles);
+                // Only update roles if API returns data
+                if (rolesResponse.data.roles && rolesResponse.data.roles.length > 0) {
+                    setRoles(rolesResponse.data.roles);
+                }
                 setBases(basesResponse.data.results || basesResponse.data);
             } catch (err) {
                 console.error('Error fetching data:', err);
+                // Keep default roles if API fails
             }
         };
         fetchData();
