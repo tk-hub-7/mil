@@ -1,0 +1,8 @@
+[build]
+builder = "nixpacks"
+buildCommand = "pip install -r requirements.txt"
+
+[deploy]
+startCommand = "python manage.py migrate && gunicorn military_ams.wsgi"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
