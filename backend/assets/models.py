@@ -156,6 +156,22 @@ class UserRole(models.Model):
         return f"{self.user.username} - {self.get_role_display()}"
 
 
+class RoleCode(models.Model):
+    """Role codes for signup verification"""
+    role = models.CharField(max_length=20, choices=UserRole.ROLE_CHOICES, unique=True)
+    code = models.CharField(max_length=50, unique=True)
+    description = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['role']
+        
+    def __str__(self):
+        return f"{self.get_role_display()} - {self.code}"
+
+
 class APILog(models.Model):
     """API request/response logging for audit trail"""
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { LogIn, Package, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import FormInput from '../components/FormInput';
@@ -110,6 +110,15 @@ const Login = () => {
                                 <p className="text-primary-400 font-mono">logistics / logistics123</p>
                             </div>
                         </div>
+                    </div>
+
+                    <div className="mt-6 pt-6 border-t border-dark-700 text-center">
+                        <p className="text-sm text-gray-400">
+                            Don't have an account?{' '}
+                            <Link to="/signup" className="text-primary-500 hover:text-primary-400 font-medium transition-colors">
+                                Sign up
+                            </Link>
+                        </p>
                     </div>
                 </div>
 

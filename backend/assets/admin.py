@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import (
     Base, EquipmentType, Inventory, Purchase, Transfer,
-    Assignment, Expenditure, UserRole, APILog
+    Assignment, Expenditure, UserRole, RoleCode, APILog
 )
 
 
@@ -63,6 +63,14 @@ class UserRoleAdmin(admin.ModelAdmin):
     list_display = ['user', 'role', 'assigned_base', 'created_at']
     list_filter = ['role', 'assigned_base']
     search_fields = ['user__username', 'user__email']
+
+
+@admin.register(RoleCode)
+class RoleCodeAdmin(admin.ModelAdmin):
+    list_display = ['role', 'code', 'is_active', 'created_at']
+    list_filter = ['role', 'is_active']
+    search_fields = ['code', 'description']
+    readonly_fields = ['created_at', 'updated_at']
 
 
 @admin.register(APILog)

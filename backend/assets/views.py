@@ -74,6 +74,18 @@ def current_user(request):
 
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
+def role_choices(request):
+    """Get available role choices for signup"""
+    return Response({
+        'roles': [
+            {'value': role[0], 'label': role[1]}
+            for role in UserRole.ROLE_CHOICES
+        ]
+    })
+
+
+@api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def dashboard_stats(request):
     """Get dashboard statistics"""

@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from .views import (
-    register, login, current_user, dashboard_stats,
+    register, login, current_user, dashboard_stats, role_choices,
     BaseViewSet, EquipmentTypeViewSet, InventoryViewSet,
     PurchaseViewSet, TransferViewSet, AssignmentViewSet, ExpenditureViewSet
 )
@@ -23,6 +23,7 @@ urlpatterns = [
     path('auth/login/', login, name='login'),
     path('auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('auth/user/', current_user, name='current_user'),
+    path('auth/roles/', role_choices, name='role_choices'),
     
     # Dashboard
     path('dashboard/stats/', dashboard_stats, name='dashboard_stats'),
