@@ -4,7 +4,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 
 from .views import (
     register, login, current_user, dashboard_stats, role_choices,
-    initialize_role_codes, get_role_codes,
+    initialize_role_codes, get_role_codes, populate_demo_bases,
     BaseViewSet, EquipmentTypeViewSet, InventoryViewSet,
     PurchaseViewSet, TransferViewSet, AssignmentViewSet, ExpenditureViewSet
 )
@@ -29,6 +29,9 @@ urlpatterns = [
     # Role code endpoints (public for initialization)
     path('auth/init-role-codes/', initialize_role_codes, name='initialize_role_codes'),
     path('auth/role-codes/', get_role_codes, name='get_role_codes'),
+    
+    # Setup endpoints (public for initial setup)
+    path('setup/populate-bases/', populate_demo_bases, name='populate_demo_bases'),
     
     # Dashboard
     path('dashboard/stats/', dashboard_stats, name='dashboard_stats'),

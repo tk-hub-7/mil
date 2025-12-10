@@ -163,6 +163,56 @@ def get_role_codes(request):
     })
 
 
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def populate_demo_bases(request):
+    """Populate demo bases (public endpoint for initial setup)"""
+    # Check if bases already exist
+    existing_count = Base.objects.filter(is_deleted=False).count()
+    if existing_count > 0:
+        return Response({
+            'message': f'Bases already exist ({existing_count} bases found)',
+            'bases_count': existing_count,
+            'bases': list(Base.objects.filter(is_deleted=False).values('id', 'name', 'code', 'location'))
+        })
+    
+    # Demo bases data
+    bases_data = [
+        {'name': 'Alpha Base', 'location': 'North Region', 'code': 'ALPHA-01'},
+        {'name': 'Bravo Base', 'location': 'South Region', 'code': 'BRAVO-02'},
+        {'name': 'Charlie Base', 'location': 'East Region', 'code': 'CHARLIE-03'},
+        {'name': 'Fort Alpha', 'location': 'Northern Region', 'code': 'FA-001'},
+        {'name': 'Fort Bravo', 'location': 'Southern Region', 'code': 'FB-002'},
+        {'name': 'Fort Charlie', 'location': 'Eastern Region', 'code': 'FC-003'},
+        {'name': 'Fort Delta', 'location': 'Western Region', 'code': 'FD-004'},
+        {'name': 'Fort Echo', 'location': 'Central Region', 'code': 'FE-005'},
+        {'name': 'Naval Base Omega', 'location': 'Coastal Region', 'code': 'NBO-006'},
+        {'name': 'Air Force Base Zulu', 'location': 'Highland Region', 'code': 'AFB-007'},
+    ]
+    
+    created_bases = []
+    for base_data in bases_data:
+        # Check if base already exists by code
+        if not Base.objects.filter(code=base_data['code']).exists():
+            base = Base.objects.create(**base_data)
+            created_bases.append({
+                'id': base.id,
+                'name': base.name,
+                'code': base.code,
+                'location': base.location
+            })
+    
+    total_count = Base.objects.filter(is_deleted=False).count()
+    
+    return Response({
+        'message': f'Successfully created {len(created_bases)} demo bases',
+        'created_count': len(created_bases),
+        'total_count': total_count,
+        'bases': created_bases
+    }, status=status.HTTP_201_CREATED)
+
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def dashboard_stats(request):
