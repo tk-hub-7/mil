@@ -10,7 +10,7 @@ from datetime import datetime
 
 from .models import (
     Base, EquipmentType, Inventory, Purchase, Transfer,
-    Assignment, Expenditure, UserRole
+    Assignment, Expenditure, UserRole, RoleCode
 )
 from .serializers import (
     UserSerializer, UserRegistrationSerializer, BaseSerializer,
@@ -95,6 +95,71 @@ def role_choices(request):
             {'value': role[0], 'label': role[1]}
             for role in UserRole.ROLE_CHOICES
         ]
+    })
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def initialize_role_codes(request):
+    """Initialize default role codes (public endpoint for first-time setup)"""
+    # Check if role codes already exist
+    if RoleCode.objects.exists():
+        return Response({
+            'message': 'Role codes already initialized',
+            'role_codes': list(RoleCode.objects.values('role', 'code', 'is_active'))
+        })
+    
+    # Create default role codes
+    role_codes_data = [
+        {
+            'role': 'admin',
+            'code': 'ADMIN2024',
+            'description': 'Administrator access code',
+            'is_active': True
+        },
+        {
+            'role': 'base_commander',
+            'code': 'BASECMD2024',
+            'description': 'Base Commander access code',
+            'is_active': True
+        },
+        {
+            'role': 'logistics_officer',
+            'code': 'LOGISTICS2024',
+            'description': 'Logistics Officer access code',
+            'is_active': True
+        },
+    ]
+    
+    created_codes = []
+    for role_data in role_codes_data:
+        role_code, created = RoleCode.objects.get_or_create(
+            role=role_data['role'],
+            defaults={
+                'code': role_data['code'],
+                'description': role_data['description'],
+                'is_active': role_data['is_active']
+            }
+        )
+        created_codes.append({
+            'role': role_code.role,
+            'code': role_code.code,
+            'is_active': role_code.is_active
+        })
+    
+    return Response({
+        'message': 'Role codes initialized successfully',
+        'role_codes': created_codes
+    }, status=status.HTTP_201_CREATED)
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_role_codes(request):
+    """Get all active role codes (for signup page)"""
+    role_codes = RoleCode.objects.filter(is_active=True).values('role', 'code')
+    return Response({
+        'role_codes': list(role_codes)
     })
 
 
