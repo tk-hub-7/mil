@@ -14,7 +14,6 @@ const Signup = () => {
         first_name: '',
         last_name: '',
         role: 'logistics_officer', // Default role
-        role_code: '', // Role verification code
         assigned_base_id: null,
     });
 
@@ -90,7 +89,6 @@ const Signup = () => {
                 first_name: formData.first_name,
                 last_name: formData.last_name,
                 role: formData.role,
-                role_code: formData.role_code,
                 assigned_base_id: formData.assigned_base_id,
             });
 
@@ -241,22 +239,7 @@ const Signup = () => {
                             </p>
                         </div>
 
-                        <FormInput
-                            label="Role Code"
-                            type="text"
-                            name="role_code"
-                            value={formData.role_code}
-                            onChange={handleChange}
-                            placeholder="Enter your role verification code"
-                            required
-                        />
-                        <div className="mb-4 -mt-2">
-                            <p className="text-xs text-gray-500">
-                                Demo Codes: Admin: <span className="text-primary-400 font-mono">ADMIN-2024-SECURE</span> |
-                                Base Commander: <span className="text-primary-400 font-mono">CMDR-BASE-7891</span> |
-                                Logistics: <span className="text-primary-400 font-mono">LOG-OFFICER-4523</span>
-                            </p>
-                        </div>
+
 
                         {formData.role === 'base_commander' && (
                             <div className="mb-4">
