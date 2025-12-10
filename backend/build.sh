@@ -16,3 +16,5 @@ python manage.py create_demo_bases
 
 # Create demo users (will skip if already exist)
 python manage.py create_demo_users
+
+# Deployment timestamp: 2025-12-10 17:37 IST
