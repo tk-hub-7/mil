@@ -212,6 +212,224 @@ def populate_demo_bases(request):
     }, status=status.HTTP_201_CREATED)
 
 
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def populate_equipment_types(request):
+    """Populate demo equipment types (public endpoint for initial setup)"""
+    from .models import EquipmentType
+    
+    # Check if equipment types already exist
+    existing_count = EquipmentType.objects.filter(is_deleted=False).count()
+    if existing_count > 0:
+        return Response({
+            'message': f'Equipment types already exist ({existing_count} types found)',
+            'equipment_count': existing_count,
+            'equipment_types': list(EquipmentType.objects.filter(is_deleted=False).values('id', 'name', 'description', 'unit'))
+        })
+    
+    # Demo equipment types data
+    equipment_types_data = [
+        {'name': 'M4 Carbine', 'description': 'Standard issue rifle', 'unit': 'units'},
+        {'name': 'M9 Pistol', 'description': 'Standard issue sidearm', 'unit': 'units'},
+        {'name': 'Body Armor', 'description': 'Protective vest', 'unit': 'units'},
+        {'name': 'Helmet', 'description': 'Combat helmet', 'unit': 'units'},
+        {'name': 'Night Vision Goggles', 'description': 'NVG equipment', 'unit': 'units'},
+        {'name': 'Radio Equipment', 'description': 'Communication device', 'unit': 'units'},
+        {'name': 'First Aid Kit', 'description': 'Medical supplies', 'unit': 'kits'},
+        {'name': 'Ammunition (5.56mm)', 'description': 'Rifle ammunition', 'unit': 'rounds'},
+        {'name': 'Ammunition (9mm)', 'description': 'Pistol ammunition', 'unit': 'rounds'},
+        {'name': 'MRE (Meals Ready to Eat)', 'description': 'Field rations', 'unit': 'meals'},
+    ]
+    
+    created_equipment = []
+    for eq_data in equipment_types_data:
+        if not EquipmentType.objects.filter(name=eq_data['name']).exists():
+            equipment = EquipmentType.objects.create(**eq_data)
+            created_equipment.append({
+                'id': equipment.id,
+                'name': equipment.name,
+                'description': equipment.description,
+                'unit': equipment.unit
+            })
+    
+    total_count = EquipmentType.objects.filter(is_deleted=False).count()
+    
+    return Response({
+        'message': f'Successfully created {len(created_equipment)} equipment types',
+        'created_count': len(created_equipment),
+        'total_count': total_count,
+        'equipment_types': created_equipment
+    }, status=status.HTTP_201_CREATED)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def seed_transaction_data(request):
+    """Seed demo transaction data (purchases, transfers, assignments, expenditures)"""
+    from datetime import timedelta
+    import random
+    
+    user = request.user
+    
+    # Get existing data
+    bases = list(Base.objects.filter(is_deleted=False))
+    equipment_types = list(EquipmentType.objects.filter(is_deleted=False))
+    
+    if not bases or not equipment_types:
+        return Response({
+            'error': 'Please ensure bases and equipment types exist first!',
+            'bases_count': len(bases),
+            'equipment_types_count': len(equipment_types)
+        }, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Check if data already exists
+    existing_purchases = Purchase.objects.filter(is_deleted=False).count()
+    existing_transfers = Transfer.objects.filter(is_deleted=False).count()
+    
+    if existing_purchases > 20 or existing_transfers > 10:
+        return Response({
+            'message': 'Transaction data already exists',
+            'purchases': existing_purchases,
+            'transfers': existing_transfers,
+            'assignments': Assignment.objects.filter(is_deleted=False).count(),
+            'expenditures': Expenditure.objects.filter(is_deleted=False).count()
+        })
+    
+    created_data = {
+        'purchases': 0,
+        'transfers': 0,
+        'assignments': 0,
+        'expenditures': 0
+    }
+    
+    # Create Purchases (30 records over the last 90 days)
+    for i in range(30):
+        days_ago = random.randint(1, 90)
+        purchase_date = datetime.now().date() - timedelta(days=days_ago)
+        
+        base = random.choice(bases)
+        equipment_type = random.choice(equipment_types)
+        quantity = random.randint(10, 500)
+        
+        purchase = Purchase.objects.create(
+            base=base,
+            equipment_type=equipment_type,
+            quantity=quantity,
+            supplier=random.choice([
+                'Defense Supplies Inc.',
+                'Military Equipment Corp.',
+                'Global Arms Ltd.',
+                'Strategic Resources Co.',
+                'National Defense Suppliers',
+                'Allied Equipment Group'
+            ]),
+            purchase_date=purchase_date,
+            created_by=user
+        )
+        
+        # Update inventory
+        inventory, created = Inventory.objects.get_or_create(
+            base=base,
+            equipment_type=equipment_type,
+            defaults={'quantity': 0}
+        )
+        inventory.quantity += quantity
+        inventory.save()
+        created_data['purchases'] += 1
+    
+    # Create Transfers (20 records)
+    for i in range(20):
+        days_ago = random.randint(1, 60)
+        transfer_date = datetime.now().date() - timedelta(days=days_ago)
+        
+        from_base = random.choice(bases)
+        to_base = random.choice([b for b in bases if b != from_base])
+        
+        Transfer.objects.create(
+            from_base=from_base,
+            to_base=to_base,
+            equipment_type=random.choice(equipment_types),
+            quantity=random.randint(5, 100),
+            status=random.choice(['pending', 'in_transit', 'completed']),
+            transfer_date=transfer_date,
+            created_by=user
+        )
+        created_data['transfers'] += 1
+    
+    # Create Assignments (25 records)
+    personnel_names = [
+        'Sgt. John Smith', 'Cpl. Sarah Johnson', 'Lt. Michael Brown',
+        'Pvt. Emily Davis', 'Sgt. David Wilson', 'Cpl. Jessica Martinez',
+        'Lt. Robert Anderson', 'Pvt. Amanda Taylor', 'Sgt. Christopher Lee',
+        'Cpl. Jennifer White', 'Lt. Matthew Harris', 'Pvt. Ashley Clark',
+        'Sgt. Daniel Lewis', 'Cpl. Melissa Walker', 'Lt. James Hall'
+    ]
+    
+    for i in range(25):
+        days_ago = random.randint(1, 120)
+        assignment_date = datetime.now().date() - timedelta(days=days_ago)
+        
+        assigned_qty = random.randint(1, 20)
+        returned_qty = random.randint(0, assigned_qty) if random.random() > 0.3 else 0
+        
+        return_date = None
+        if returned_qty > 0:
+            return_date = assignment_date + timedelta(days=random.randint(7, 60))
+        
+        Assignment.objects.create(
+            base=random.choice(bases),
+            equipment_type=random.choice(equipment_types),
+            personnel_name=random.choice(personnel_names),
+            personnel_id=f'MIL-{random.randint(10000, 99999)}',
+            assigned_quantity=assigned_qty,
+            returned_quantity=returned_qty,
+            assignment_date=assignment_date,
+            return_date=return_date,
+            created_by=user
+        )
+        created_data['assignments'] += 1
+    
+    # Create Expenditures (15 records)
+    expenditure_reasons = [
+        'Training Exercise',
+        'Combat Operations',
+        'Equipment Testing',
+        'Maintenance and Repair',
+        'Emergency Response',
+        'Field Operations',
+        'Tactical Drills',
+        'Equipment Damage',
+        'Lost in Field',
+        'Routine Consumption'
+    ]
+    
+    for i in range(15):
+        days_ago = random.randint(1, 90)
+        expenditure_date = datetime.now().date() - timedelta(days=days_ago)
+        
+        Expenditure.objects.create(
+            base=random.choice(bases),
+            equipment_type=random.choice(equipment_types),
+            quantity=random.randint(1, 50),
+            reason=random.choice(expenditure_reasons),
+            expenditure_date=expenditure_date,
+            created_by=user
+        )
+        created_data['expenditures'] += 1
+    
+    return Response({
+        'message': 'Successfully created transaction data',
+        'created': created_data,
+        'totals': {
+            'purchases': Purchase.objects.filter(is_deleted=False).count(),
+            'transfers': Transfer.objects.filter(is_deleted=False).count(),
+            'assignments': Assignment.objects.filter(is_deleted=False).count(),
+            'expenditures': Expenditure.objects.filter(is_deleted=False).count(),
+            'inventory_items': Inventory.objects.count()
+        }
+    }, status=status.HTTP_201_CREATED)
+
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])

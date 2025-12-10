@@ -5,6 +5,7 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (
     register, login, current_user, dashboard_stats, role_choices,
     initialize_role_codes, get_role_codes, populate_demo_bases,
+    populate_equipment_types, seed_transaction_data,
     BaseViewSet, EquipmentTypeViewSet, InventoryViewSet,
     PurchaseViewSet, TransferViewSet, AssignmentViewSet, ExpenditureViewSet
 )
@@ -32,6 +33,8 @@ urlpatterns = [
     
     # Setup endpoints (public for initial setup)
     path('setup/populate-bases/', populate_demo_bases, name='populate_demo_bases'),
+    path('setup/populate-equipment/', populate_equipment_types, name='populate_equipment_types'),
+    path('setup/seed-transactions/', seed_transaction_data, name='seed_transaction_data'),
     
     # Dashboard
     path('dashboard/stats/', dashboard_stats, name='dashboard_stats'),
