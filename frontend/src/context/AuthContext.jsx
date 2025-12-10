@@ -18,6 +18,8 @@ export const AuthProvider = ({ children }) => {
 
     const login = async (username, password) => {
         try {
+            console.log('🔐 Attempting login with baseURL:', api.defaults.baseURL);
+            console.log('🔐 Full URL will be:', api.defaults.baseURL + '/auth/login/');
             const response = await api.post('/auth/login/', { username, password });
             const { user, tokens } = response.data;
 
@@ -28,6 +30,8 @@ export const AuthProvider = ({ children }) => {
             setUser(user);
             return { success: true };
         } catch (error) {
+            console.error('❌ Login error:', error);
+            console.error('❌ Error response:', error.response);
             return {
                 success: false,
                 error: error.response?.data?.error || 'Login failed',

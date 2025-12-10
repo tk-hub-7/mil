@@ -1,4 +1,4 @@
-from rest_framework import viewsets, status, filters
+from rest_framework import viewsets, status, filters, permissions
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -18,6 +18,19 @@ from .serializers import (
     TransferSerializer, AssignmentSerializer, ExpenditureSerializer
 )
 from .permissions import IsAdmin, BaseAccessPermission, CanModifyAssignments
+
+
+class BaseListPermission(permissions.BasePermission):
+    """
+    Allow unauthenticated users to list bases (for signup).
+    Require authentication for all other operations.
+    """
+    def has_permission(self, request, view):
+        # Allow anyone to list bases (needed for signup page)
+        if view.action == 'list':
+            return True
+        # Require authentication for all other operations
+        return request.user and request.user.is_authenticated
 
 
 @api_view(['POST'])
@@ -194,6 +207,7 @@ class BaseViewSet(viewsets.ModelViewSet):
     """ViewSet for Base model"""
     queryset = Base.objects.filter(is_deleted=False)
     serializer_class = BaseSerializer
+    permission_classes = [BaseListPermission]
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'code', 'location']
     ordering_fields = ['name', 'created_at']
@@ -202,13 +216,15 @@ class BaseViewSet(viewsets.ModelViewSet):
         queryset = super().get_queryset()
         user = self.request.user
         
-        try:
-            user_role = user.role
-            if user_role.role == 'base_commander':
-                # Base commanders only see their assigned base
-                queryset = queryset.filter(id=user_role.assigned_base.id)
-        except UserRole.DoesNotExist:
-            pass
+        # Only filter by user role if user is authenticated
+        if user.is_authenticated:
+            try:
+                user_role = user.role
+                if user_role.role == 'base_commander':
+                    # Base commanders only see their assigned base
+                    queryset = queryset.filter(id=user_role.assigned_base.id)
+            except UserRole.DoesNotExist:
+                pass
         
         return queryset
     

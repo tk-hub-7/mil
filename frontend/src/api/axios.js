@@ -3,6 +3,10 @@ import axios from 'axios';
 // Use environment variable for API URL, fallback to local development
 const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000/api/v1';
 
+// Debug: Log the API URL being used
+console.log('🔗 API URL:', API_URL);
+console.log('🔗 Environment VITE_API_URL:', import.meta.env.VITE_API_URL);
+
 const api = axios.create({
   baseURL: API_URL,
   headers: {
@@ -48,7 +52,12 @@ api.interceptors.response.use(
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
         localStorage.removeItem('user');
-        window.location.href = '/login';
+        
+        // Only redirect if not on login or signup pages
+        const currentPath = window.location.pathname;
+        if (currentPath !== '/login' && currentPath !== '/signup') {
+          window.location.href = '/login';
+        }
         return Promise.reject(refreshError);
       }
     }

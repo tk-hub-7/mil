@@ -48,6 +48,10 @@ const Signup = () => {
                 setBases(basesResponse.data.results || basesResponse.data);
             } catch (err) {
                 console.error('Error fetching data:', err);
+                // Show error only if bases fetch failed (critical for base commanders)
+                if (err.response?.status === 401 || err.response?.status === 403) {
+                    console.warn('Authentication required for bases - this should not happen');
+                }
                 // Keep default roles if API fails
             }
         };
@@ -212,21 +216,29 @@ const Signup = () => {
 
                         <div className="mb-4">
                             <label className="block text-sm font-medium text-gray-300 mb-2">
-                                Role
+                                Role *
                             </label>
                             <select
                                 name="role"
                                 value={formData.role}
                                 onChange={handleChange}
-                                className="w-full px-4 py-3 bg-dark-800 border border-dark-600 rounded-lg text-white focus:outline-none focus:border-primary-500 transition-colors"
+                                className="w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-lg text-white text-base focus:outline-none focus:border-primary-500 transition-colors cursor-pointer"
                                 required
                             >
                                 {roles.map((role) => (
-                                    <option key={role.value} value={role.value}>
+                                    <option
+                                        key={role.value}
+                                        value={role.value}
+                                    >
                                         {role.label}
                                     </option>
                                 ))}
                             </select>
+                            <p className="text-xs text-gray-400 mt-2">
+                                Selected: <span className="text-primary-400 font-semibold">
+                                    {roles.find(r => r.value === formData.role)?.label || 'Logistics Officer'}
+                                </span>
+                            </p>
                         </div>
 
                         <FormInput
@@ -249,13 +261,13 @@ const Signup = () => {
                         {formData.role === 'base_commander' && (
                             <div className="mb-4">
                                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                                    Assigned Base
+                                    Assigned Base *
                                 </label>
                                 <select
                                     name="assigned_base_id"
                                     value={formData.assigned_base_id || ''}
                                     onChange={handleChange}
-                                    className="w-full px-4 py-3 bg-dark-800 border border-dark-600 rounded-lg text-white focus:outline-none focus:border-primary-500 transition-colors"
+                                    className="w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-lg text-white text-base focus:outline-none focus:border-primary-500 transition-colors cursor-pointer"
                                     required={formData.role === 'base_commander'}
                                 >
                                     <option value="">Select a base</option>
@@ -265,6 +277,11 @@ const Signup = () => {
                                         </option>
                                     ))}
                                 </select>
+                                {bases.length === 0 && (
+                                    <p className="text-xs text-yellow-400 mt-2">
+                                        Loading bases... If this persists, please contact support.
+                                    </p>
+                                )}
                             </div>
                         )}
 

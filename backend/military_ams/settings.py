@@ -160,9 +160,14 @@ SIMPLE_JWT = {
 }
 
 # CORS settings
+# For development, allow all origins
+CORS_ALLOW_ALL_ORIGINS = config('DEBUG', default=True, cast=bool)
+
 CORS_ALLOWED_ORIGINS = config(
     'CORS_ALLOWED_ORIGINS',
-    default='http://localhost:5173,http://127.0.0.1:5173'
+    default='http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173'
 ).split(',')
 
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = ['*']
+CORS_ALLOW_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
