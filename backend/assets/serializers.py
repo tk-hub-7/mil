@@ -39,16 +39,36 @@ class UserSerializer(serializers.ModelSerializer):
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)
     role = serializers.ChoiceField(choices=UserRole.ROLE_CHOICES)
+    role_code = serializers.CharField(write_only=True, required=True)
     assigned_base_id = serializers.IntegerField(required=False, allow_null=True)
     
     class Meta:
         model = User
-        fields = ['username', 'email', 'password', 'first_name', 'last_name', 'role', 'assigned_base_id']
+        fields = ['username', 'email', 'password', 'first_name', 'last_name', 'role', 'role_code', 'assigned_base_id']
     
-
+    def validate(self, data):
+        """Validate role code matches the selected role"""
+        from .models import RoleCode
+        
+        role = data.get('role')
+        role_code = data.get('role_code')
+        
+        try:
+            valid_code = RoleCode.objects.get(role=role, is_active=True)
+            if valid_code.code != role_code:
+                raise serializers.ValidationError({
+                    'role_code': f'Invalid role code for {dict(UserRole.ROLE_CHOICES)[role]}'
+                })
+        except RoleCode.DoesNotExist:
+            raise serializers.ValidationError({
+                'role_code': 'No active role code found for this role'
+            })
+        
+        return data
         
     def create(self, validated_data):
         role = validated_data.pop('role')
+        validated_data.pop('role_code')  # Remove role_code as it's not needed for user creation
         assigned_base_id = validated_data.pop('assigned_base_id', None)
         
         user = User.objects.create_user(**validated_data)
