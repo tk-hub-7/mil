@@ -252,9 +252,9 @@ const Signup = () => {
                         />
                         <div className="mb-4 -mt-2">
                             <p className="text-xs text-gray-500">
-                                Demo Codes: Admin: <span className="text-primary-400 font-mono">ADMIN-2024-SECURE</span> |
-                                Base Commander: <span className="text-primary-400 font-mono">CMDR-BASE-7891</span> |
-                                Logistics: <span className="text-primary-400 font-mono">LOG-OFFICER-4523</span>
+                                Demo Codes: Admin: <span className="text-primary-400 font-mono">ADMIN2024</span> |
+                                Base Commander: <span className="text-primary-400 font-mono">BASECMD2024</span> |
+                                Logistics: <span className="text-primary-400 font-mono">LOGISTICS2024</span>
                             </p>
                         </div>
 
