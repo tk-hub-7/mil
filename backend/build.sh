@@ -11,5 +11,8 @@ python manage.py collectstatic --no-input
 # Run database migrations
 python manage.py migrate
 
-# Create superuser if it doesn't exist (optional)
-echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.filter(username='admin').exists() or User.objects.create_superuser('admin', 'admin@example.com', 'admin123')" | python manage.py shell
+# Create demo bases (will skip if already exist)
+python manage.py create_demo_bases
+
+# Create demo users (will skip if already exist)
+python manage.py create_demo_users

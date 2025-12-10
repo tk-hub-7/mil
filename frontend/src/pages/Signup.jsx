@@ -259,24 +259,33 @@ const Signup = () => {
                         </div>
 
                         {formData.role === 'base_commander' && (
-                            <div className="mb-4">
+                            <div className="mb-4 relative z-50">
                                 <label className="block text-sm font-medium text-gray-300 mb-2">
                                     Assigned Base *
                                 </label>
-                                <select
-                                    name="assigned_base_id"
-                                    value={formData.assigned_base_id || ''}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-lg text-white text-base focus:outline-none focus:border-primary-500 transition-colors cursor-pointer"
-                                    required={formData.role === 'base_commander'}
-                                >
-                                    <option value="">Select a base</option>
-                                    {bases.map((base) => (
-                                        <option key={base.id} value={base.id}>
-                                            {base.name} ({base.code})
-                                        </option>
-                                    ))}
-                                </select>
+                                <div className="relative">
+                                    <select
+                                        name="assigned_base_id"
+                                        value={formData.assigned_base_id || ''}
+                                        onChange={handleChange}
+                                        className="w-full px-4 py-3 bg-gray-700 border-2 border-gray-600 rounded-lg text-white text-base focus:outline-none focus:border-primary-500 transition-colors cursor-pointer relative z-50 appearance-none"
+                                        required={formData.role === 'base_commander'}
+                                        style={{ position: 'relative', zIndex: 9999 }}
+                                    >
+                                        <option value="">Select a base</option>
+                                        {bases.map((base) => (
+                                            <option key={base.id} value={base.id}>
+                                                {base.name} ({base.code})
+                                            </option>
+                                        ))}
+                                    </select>
+                                    {/* Custom dropdown arrow */}
+                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-gray-400">
+                                        <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                            <path d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" />
+                                        </svg>
+                                    </div>
+                                </div>
                                 {bases.length === 0 && (
                                     <p className="text-xs text-yellow-400 mt-2">
                                         Loading bases... If this persists, please contact support.
