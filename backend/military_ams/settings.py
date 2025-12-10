@@ -19,7 +19,7 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 
 # ALLOWED_HOSTS configuration
 # Use environment variable or default to allow common deployment platforms
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,.onrender.com,.railway.app,.vercel.app').split(',')
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1,mil-2.onrender.com,.onrender.com,.railway.app,.vercel.app').split(',')
 
 # Application definition
 INSTALLED_APPS = [
@@ -165,7 +165,7 @@ CORS_ALLOW_ALL_ORIGINS = config('DEBUG', default=True, cast=bool)
 
 CORS_ALLOWED_ORIGINS = config(
     'CORS_ALLOWED_ORIGINS',
-    default='http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173'
+    default='http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173,https://mil-frontend.vercel.app'
 ).split(',')
 
 CORS_ALLOW_CREDENTIALS = True
