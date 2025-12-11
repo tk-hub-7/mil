@@ -263,6 +263,154 @@ def populate_equipment_types(request):
 
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
+def setup_all_demo_data(request):
+    """
+    All-in-one setup endpoint - populates bases, equipment types, and optionally transaction data.
+    Query param: include_transactions=true to also seed transaction data (requires authentication)
+    """
+    from datetime import timedelta
+    import random
+    
+    results = {
+        'bases': {'created': 0, 'total': 0},
+        'equipment_types': {'created': 0, 'total': 0},
+        'transactions': None
+    }
+    
+    # 1. Populate Bases
+    bases_data = [
+        {'name': 'Alpha Base', 'location': 'North Region', 'code': 'ALPHA-01'},
+        {'name': 'Bravo Base', 'location': 'South Region', 'code': 'BRAVO-02'},
+        {'name': 'Charlie Base', 'location': 'East Region', 'code': 'CHARLIE-03'},
+        {'name': 'Fort Alpha', 'location': 'Northern Region', 'code': 'FA-001'},
+        {'name': 'Fort Bravo', 'location': 'Southern Region', 'code': 'FB-002'},
+        {'name': 'Fort Charlie', 'location': 'Eastern Region', 'code': 'FC-003'},
+        {'name': 'Fort Delta', 'location': 'Western Region', 'code': 'FD-004'},
+        {'name': 'Fort Echo', 'location': 'Central Region', 'code': 'FE-005'},
+        {'name': 'Naval Base Omega', 'location': 'Coastal Region', 'code': 'NBO-006'},
+        {'name': 'Air Force Base Zulu', 'location': 'Highland Region', 'code': 'AFB-007'},
+    ]
+    
+    for base_data in bases_data:
+        if not Base.objects.filter(code=base_data['code']).exists():
+            Base.objects.create(**base_data)
+            results['bases']['created'] += 1
+    
+    results['bases']['total'] = Base.objects.filter(is_deleted=False).count()
+    
+    # 2. Populate Equipment Types
+    equipment_types_data = [
+        {'name': 'M4 Carbine', 'description': 'Standard issue rifle', 'unit': 'units'},
+        {'name': 'M9 Pistol', 'description': 'Standard issue sidearm', 'unit': 'units'},
+        {'name': 'Body Armor', 'description': 'Protective vest', 'unit': 'units'},
+        {'name': 'Helmet', 'description': 'Combat helmet', 'unit': 'units'},
+        {'name': 'Night Vision Goggles', 'description': 'NVG equipment', 'unit': 'units'},
+        {'name': 'Radio Equipment', 'description': 'Communication device', 'unit': 'units'},
+        {'name': 'First Aid Kit', 'description': 'Medical supplies', 'unit': 'kits'},
+        {'name': 'Ammunition (5.56mm)', 'description': 'Rifle ammunition', 'unit': 'rounds'},
+        {'name': 'Ammunition (9mm)', 'description': 'Pistol ammunition', 'unit': 'rounds'},
+        {'name': 'MRE (Meals Ready to Eat)', 'description': 'Field rations', 'unit': 'meals'},
+    ]
+    
+    for eq_data in equipment_types_data:
+        if not EquipmentType.objects.filter(name=eq_data['name']).exists():
+            EquipmentType.objects.create(**eq_data)
+            results['equipment_types']['created'] += 1
+    
+    results['equipment_types']['total'] = EquipmentType.objects.filter(is_deleted=False).count()
+    
+    # 3. Optionally populate transaction data (requires authentication)
+    include_transactions = request.query_params.get('include_transactions', 'false').lower() == 'true'
+    
+    if include_transactions:
+        if not request.user or not request.user.is_authenticated:
+            return Response({
+                'error': 'Authentication required for transaction data',
+                'results': results,
+                'message': 'Bases and equipment created successfully, but transaction data requires login'
+            }, status=status.HTTP_401_UNAUTHORIZED)
+        
+        # Get data for transactions
+        bases = list(Base.objects.filter(is_deleted=False))
+        equipment_types = list(EquipmentType.objects.filter(is_deleted=False))
+        
+        if bases and equipment_types:
+            # Check if data already exists
+            existing_purchases = Purchase.objects.filter(is_deleted=False).count()
+            
+            if existing_purchases < 20:
+                created_data = {
+                    'purchases': 0,
+                    'transfers': 0,
+                    'assignments': 0,
+                    'expenditures': 0
+                }
+                
+                # Create sample transactions (reduced numbers for faster execution)
+                for i in range(15):
+                    days_ago = random.randint(1, 90)
+                    purchase_date = datetime.now().date() - timedelta(days=days_ago)
+                    
+                    base = random.choice(bases)
+                    equipment_type = random.choice(equipment_types)
+                    quantity = random.randint(10, 200)
+                    
+                    Purchase.objects.create(
+                        base=base,
+                        equipment_type=equipment_type,
+                        quantity=quantity,
+                        supplier=random.choice([
+                            'Defense Supplies Inc.', 'Military Equipment Corp.',
+                            'Global Arms Ltd.', 'Strategic Resources Co.'
+                        ]),
+                        purchase_date=purchase_date,
+                        created_by=request.user
+                    )
+                    
+                    # Update inventory
+                    inventory, created = Inventory.objects.get_or_create(
+                        base=base,
+                        equipment_type=equipment_type,
+                        defaults={'quantity': 0}
+                    )
+                    inventory.quantity += quantity
+                    inventory.save()
+                    created_data['purchases'] += 1
+                
+                # Create transfers
+                for i in range(10):
+                    from_base = random.choice(bases)
+                    to_base = random.choice([b for b in bases if b != from_base])
+                    
+                    Transfer.objects.create(
+                        from_base=from_base,
+                        to_base=to_base,
+                        equipment_type=random.choice(equipment_types),
+                        quantity=random.randint(5, 50),
+                        status=random.choice(['pending', 'completed']),
+                        transfer_date=datetime.now().date() - timedelta(days=random.randint(1, 60)),
+                        created_by=request.user
+                    )
+                    created_data['transfers'] += 1
+                
+                results['transactions'] = {
+                    'created': created_data,
+                    'totals': {
+                        'purchases': Purchase.objects.filter(is_deleted=False).count(),
+                        'transfers': Transfer.objects.filter(is_deleted=False).count()
+                    }
+                }
+            else:
+                results['transactions'] = {'message': 'Transaction data already exists'}
+    
+    return Response({
+        'message': 'Demo data setup complete',
+        'results': results
+    }, status=status.HTTP_201_CREATED)
+
+
+@api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def seed_transaction_data(request):
     """Seed demo transaction data (purchases, transfers, assignments, expenditures)"""
